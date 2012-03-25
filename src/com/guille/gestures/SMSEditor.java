@@ -15,6 +15,7 @@ import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
 import android.gesture.GestureLibrary;
 import android.gesture.GestureOverlayView;
+import android.gesture.GestureOverlayView.OnGestureListener;
 import android.gesture.GestureOverlayView.OnGesturePerformedListener;
 import android.gesture.Prediction;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.GestureDetector.OnDoubleTapListener;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,7 +33,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class SMSEditor extends Activity implements OnGesturePerformedListener//, OnTouchListener
+public class SMSEditor extends Activity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener, OnGesturePerformedListener//, OnTouchListener
 {  
 	private GestureLibrary gestureLib;
 	private TextView txtTexto;
@@ -130,10 +132,10 @@ public class SMSEditor extends Activity implements OnGesturePerformedListener//,
 		View inflate = getLayoutInflater().inflate(R.layout.main, null);  
 		gestureOverlayView.addView(inflate);  
 		gestureOverlayView.addOnGesturePerformedListener(this);  
-		gestureOverlayView.setOnTouchListener(this);
+		//gestureOverlayView.setOnTouchListener(this);
 		cargarGestosLetras();
 		setContentView(gestureOverlayView);
-		gestureDetector = new GestureDetector(new MyGestureDetectorTecladoGestures(this));
+		//gestureDetector = new GestureDetector(new MyGestureDetectorTecladoGestures(this));
 		setTipoTeclado(TECLADO_GESTURES);
 		hablar("Cambiando al teclado de gestos. Para escribir, dibujá letras en imprenta en la pantalla");
 	}
@@ -366,11 +368,13 @@ public class SMSEditor extends Activity implements OnGesturePerformedListener//,
 			if (event.getAction() == event.ACTION_POINTER_3_UP)
 				enviarSMS();
 		}
-
-		if (gestureDetector.onTouchEvent(event))  //se pasa el evento a onTouchEvent del gestureDetector
-			return true;  
-		else  
-			return false; 
+//TODO 
+//		if (gestureDetector.onTouchEvent(event))  //se pasa el evento a onTouchEvent del gestureDetector
+//			return true;  
+//		else  
+//			return false; 
+		
+		return false;
 	}
 
 	private void cargarContacto(int indiceContacto){
@@ -460,154 +464,155 @@ public class SMSEditor extends Activity implements OnGesturePerformedListener//,
 		((MiApp)super.getApplication()).hablar(cadena);
 	}
 
-	class MyGestureDetectorTecladoGestures extends SimpleOnGestureListener {  
-		Context contexto;
-
-		public MyGestureDetectorTecladoGestures (Context miContexto){
-			contexto = miContexto;
-		}
-
-		@Override  
-		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,  
-				float velocityY) {
-			Boolean swDeslizaHaciaIzquierda=false;
-			Boolean swDeslizaHaciaDerecha=false;
-			Boolean swEmpiezaIzquierdaAfuera=false;
-			Boolean swDeslizaHaciaAbajo=false;
-			Boolean swDeslizaHaciaArriba=false;
-			
-			try {  
-
-				//-------se evalúa dónde empieza el delizamiento y en qué dirección va --------
-				if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)  
-					return false; 
-
-
-				if (e1.getX() < 10.0)
-					swEmpiezaIzquierdaAfuera=true;
-				else
-					swEmpiezaIzquierdaAfuera=false;
-
-				if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE //deslizar el dedo horizontal a la izquierda 
-						&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) { 
-					swDeslizaHaciaIzquierda = true;
-					swDeslizaHaciaDerecha = false;
-
-				} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE //deslizar el dedo horizontal a la derecha  
-						&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-					swDeslizaHaciaIzquierda = false;
-					swDeslizaHaciaDerecha = true;
-				}
-				
-				if (getTipoTeclado() == TECLADO_CARRUSEL){
-					if (e1.getY() > e2.getY()) { //hacia arriba 
-//						swDeslizaHaciaAbajo = true;
-//						swDeslizaHaciaArriba = false;
-						tecladoCarrusel.seleccionarAnterior();
-						hablar(tecladoCarrusel.getTeclaSeleccionada());
-
-					} else if (e1.getY() < e2.getY()) { //hacia abajo  
-//						swDeslizaHaciaAbajo = false;
-//						swDeslizaHaciaArriba = true;
-						tecladoCarrusel.seleccionarSiguiente();
-						hablar(tecladoCarrusel.getTeclaSeleccionada());
-					}
-				}
-				//----------------fin evaluar deslizamiento-----------------
-
-				switch (getFoco()){
-				case FOCO_CONTACTOS:
-					//						if (swEmpiezaIzquierdaAfuera){
-					//							
-					//						}
-
-					if (swDeslizaHaciaIzquierda){
-						misContactos.seleccionarAnterior();
-						hablar(misContactos.getContactoSeleccionado().getNombre());
-					}
-
-					if (swDeslizaHaciaDerecha){
-						misContactos.seleccionarSiguiente();
-						hablar(misContactos.getContactoSeleccionado().getNombre());
-					}
-
-					break;
-				case FOCO_OPCIONES:
-					//						if (swEmpiezaIzquierdaAfuera){
-					//							
-					//						}
-
-					if (swDeslizaHaciaIzquierda){
-						opcionesEditor.seleccionarAnterior();
-						hablar(opcionesEditor.leerSelección());
-					}
-
-					if (swDeslizaHaciaDerecha){
-						opcionesEditor.seleccionarSiguiente();
-						hablar(opcionesEditor.leerSelección());
-					}
-
-					break;
-
-				case FOCO_ESCRITURA:
-					//el deslizamiento horizontal viene desde fuera por la izquierda: borrar
-					if (swEmpiezaIzquierdaAfuera){
-						borrarCaracter();
-						return true;
-					}
-
-					//hacia la izquierda
-					if (swDeslizaHaciaIzquierda){
-						if (flagEstadoEscritura != ESCRIBIR_NÚMERO){ //si no está en escribir número
-							cambiarANúmeros();
-							
-							flagEstadoEscritura = ESCRIBIR_NÚMERO;
-							String cadena = "Cambiando al número del destinatario. "; 
-							if (numeroSMS.length() > 0)
-								cadena += "Ya está escrito " + numeroSMS;
-							else
-								cadena += "No hay escrito ningún número";
-
-							hablar(cadena);
-						} else {
-							hablar("Ya estás en el número del destinatario, para cambiar al texto del " +
-									"mensaje arrastrá el dedo hacia la derecha. Hasta ahora el número que " +
-									"escribiste es " + numeroSMS);
-						}
-						return true;
-					}
-
-					//hacia la derecha
-					if (swDeslizaHaciaDerecha){
-						if (flagEstadoEscritura != ESCRIBIR_TEXTO_SMS){
-							cambiarALetras();
-								
-							flagEstadoEscritura = ESCRIBIR_TEXTO_SMS;
-							String cadena = "Cambiando al texto del mensaje. "; 
-							if (cadenaSMS.length() > 0)
-								cadena += "Llevás escrito " + cadenaSMS;
-							else
-								cadena += "No hay escrito nada en el mensaje";
-
-							hablar(cadena);
-						} else {
-							hablar("Ya estás en el texto del mensaje, para cambiar al número del " +
-									"destinatario arrastrá el dedo hacia la izquierda. Hasta ahora el " +
-									"mensaje que llevás escrito es " + cadenaSMS);
-						}
-						return true;
-					}
-					break;
-				}
-
-
-
-			} catch (Exception e) {  
-				Log.e("GestureTest-MyGestureDetector", "Error en onFling mensaje: " + e.getMessage());  
-			}  
-			return false;  
-		}	
-	}  
+//	class MyGestureDetectorTecladoGestures extends SimpleOnGestureListener {  
+//		Context contexto;
+//
+//		public MyGestureDetectorTecladoGestures (Context miContexto){
+//			contexto = miContexto;
+//		}
+//
+//		@Override  
+//		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,  
+//				float velocityY) {
+//			Boolean swDeslizaHaciaIzquierda=false;
+//			Boolean swDeslizaHaciaDerecha=false;
+//			Boolean swEmpiezaIzquierdaAfuera=false;
+//			Boolean swDeslizaHaciaAbajo=false;
+//			Boolean swDeslizaHaciaArriba=false;
+//			
+//			try {  
+//
+//				//-------se evalúa dónde empieza el delizamiento y en qué dirección va --------
+//				if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)  
+//					return false; 
+//
+//
+//				if (e1.getX() < 10.0)
+//					swEmpiezaIzquierdaAfuera=true;
+//				else
+//					swEmpiezaIzquierdaAfuera=false;
+//
+//				if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE //deslizar el dedo horizontal a la izquierda 
+//						&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) { 
+//					swDeslizaHaciaIzquierda = true;
+//					swDeslizaHaciaDerecha = false;
+//
+//				} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE //deslizar el dedo horizontal a la derecha  
+//						&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+//					swDeslizaHaciaIzquierda = false;
+//					swDeslizaHaciaDerecha = true;
+//				}
+//				
+//				if (getTipoTeclado() == TECLADO_CARRUSEL){
+//					if (e1.getY() > e2.getY()) { //hacia arriba 
+////						swDeslizaHaciaAbajo = true;
+////						swDeslizaHaciaArriba = false;
+//						tecladoCarrusel.seleccionarAnterior();
+//						hablar(tecladoCarrusel.getTeclaSeleccionada());
+//
+//					} else if (e1.getY() < e2.getY()) { //hacia abajo  
+////						swDeslizaHaciaAbajo = false;
+////						swDeslizaHaciaArriba = true;
+//						tecladoCarrusel.seleccionarSiguiente();
+//						hablar(tecladoCarrusel.getTeclaSeleccionada());
+//					}
+//				}
+//				//----------------fin evaluar deslizamiento-----------------
+//
+//				switch (getFoco()){
+//				case FOCO_CONTACTOS:
+//					//						if (swEmpiezaIzquierdaAfuera){
+//					//							
+//					//						}
+//
+//					if (swDeslizaHaciaIzquierda){
+//						misContactos.seleccionarAnterior();
+//						hablar(misContactos.getContactoSeleccionado().getNombre());
+//					}
+//
+//					if (swDeslizaHaciaDerecha){
+//						misContactos.seleccionarSiguiente();
+//						hablar(misContactos.getContactoSeleccionado().getNombre());
+//					}
+//
+//					break;
+//				case FOCO_OPCIONES:
+//					//						if (swEmpiezaIzquierdaAfuera){
+//					//							
+//					//						}
+//
+//					if (swDeslizaHaciaIzquierda){
+//						opcionesEditor.seleccionarAnterior();
+//						hablar(opcionesEditor.leerSelección());
+//					}
+//
+//					if (swDeslizaHaciaDerecha){
+//						opcionesEditor.seleccionarSiguiente();
+//						hablar(opcionesEditor.leerSelección());
+//					}
+//
+//					break;
+//
+//				case FOCO_ESCRITURA:
+//					//el deslizamiento horizontal viene desde fuera por la izquierda: borrar
+//					if (swEmpiezaIzquierdaAfuera){
+//						borrarCaracter();
+//						return true;
+//					}
+//
+//					//hacia la izquierda
+//					if (swDeslizaHaciaIzquierda){
+//						if (flagEstadoEscritura != ESCRIBIR_NÚMERO){ //si no está en escribir número
+//							cambiarANúmeros();
+//							
+//							flagEstadoEscritura = ESCRIBIR_NÚMERO;
+//							String cadena = "Cambiando al número del destinatario. "; 
+//							if (numeroSMS.length() > 0)
+//								cadena += "Ya está escrito " + numeroSMS;
+//							else
+//								cadena += "No hay escrito ningún número";
+//
+//							hablar(cadena);
+//						} else {
+//							hablar("Ya estás en el número del destinatario, para cambiar al texto del " +
+//									"mensaje arrastrá el dedo hacia la derecha. Hasta ahora el número que " +
+//									"escribiste es " + numeroSMS);
+//						}
+//						return true;
+//					}
+//
+//					//hacia la derecha
+//					if (swDeslizaHaciaDerecha){
+//						if (flagEstadoEscritura != ESCRIBIR_TEXTO_SMS){
+//							cambiarALetras();
+//								
+//							flagEstadoEscritura = ESCRIBIR_TEXTO_SMS;
+//							String cadena = "Cambiando al texto del mensaje. "; 
+//							if (cadenaSMS.length() > 0)
+//								cadena += "Llevás escrito " + cadenaSMS;
+//							else
+//								cadena += "No hay escrito nada en el mensaje";
+//
+//							hablar(cadena);
+//						} else {
+//							hablar("Ya estás en el texto del mensaje, para cambiar al número del " +
+//									"destinatario arrastrá el dedo hacia la izquierda. Hasta ahora el " +
+//									"mensaje que llevás escrito es " + cadenaSMS);
+//						}
+//						return true;
+//					}
+//					break;
+//				}
+//
+//
+//
+//			} catch (Exception e) {  
+//				Log.e("GestureTest-MyGestureDetector", "Error en onFling mensaje: " + e.getMessage());  
+//			}  
+//			return false;  
+//		}	
+//	}  
+//	
 	
 	private void cambiarANúmeros() {
 		if (getTipoTeclado() == TECLADO_GESTURES)
@@ -895,5 +900,79 @@ public class SMSEditor extends Activity implements OnGesturePerformedListener//,
 				índiceActual = 0;
 		}
 	} //CLASS listaContactos
+	
+	public boolean onDoubleTap(MotionEvent e) {
+		// TODO Auto-generated method stub
+		hablar("entré a on double tap");
+		return false;
+	}
+
+	public boolean onDoubleTapEvent(MotionEvent e) {
+		// TODO Auto-generated method stub
+		hablar("entré a on double tap event");
+		return false;
+	}
+
+	public boolean onSingleTapConfirmed(MotionEvent e) {
+		hablar("entré a on single tap confirmed");
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void onGesture(GestureOverlayView overlay, MotionEvent event) {
+		// TODO Auto-generated method stub
+		hablar("entré a on gesture");
+	}
+
+	public void onGestureCancelled(GestureOverlayView overlay, MotionEvent event) {
+		// TODO Auto-generated method stub
+		hablar("entré a on gesture cancelled");
+	}
+
+	public void onGestureEnded(GestureOverlayView overlay, MotionEvent event) {
+		// TODO Auto-generated method stub
+		hablar("entré a on gesture ended");
+	}
+
+	public void onGestureStarted(GestureOverlayView overlay, MotionEvent event) {
+		// TODO Auto-generated method stub
+		hablar("entré a on gesture started");
+	}
+
+	public void onLongPress(MotionEvent arg0) {
+		// TODO Auto-generated method stub
+		hablar("entré a on long press");
+	}
+
+	public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2,
+			float arg3) {
+		// TODO Auto-generated method stub
+		hablar("entré a on scroll");
+		return false;
+	}
+
+	public void onShowPress(MotionEvent arg0) {
+		// TODO Auto-generated method stub
+		hablar("entré a on show press");
+	}
+
+	public boolean onSingleTapUp(MotionEvent arg0) {
+		// TODO Auto-generated method stub
+		hablar("entré a on single tap up");
+		return false;
+	}
+
+	public boolean onDown(MotionEvent e) {
+		// TODO Auto-generated method stub
+		hablar("entré a on down");
+		return false;
+	}
+
+	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+			float velocityY) {
+		// TODO Auto-generated method stub
+		hablar("entré a on fling");
+		return false;
+	}
 
 }  
