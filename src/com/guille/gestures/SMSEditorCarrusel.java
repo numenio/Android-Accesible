@@ -19,6 +19,7 @@ import android.gesture.GestureOverlayView.OnGestureListener;
 import android.gesture.GestureOverlayView.OnGesturePerformedListener;
 import android.gesture.Prediction;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -33,30 +34,33 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class SMSEditor extends Activity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener, OnGesturePerformedListener//, OnTouchListener
+public class SMSEditorCarrusel extends Activity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener
 {  
-	private GestureLibrary gestureLib;
+
 	private TextView txtTexto;
 	private TextView txtNumero;
 	private String cadenaSMS = "";
 	private String numeroSMS = "";
 	private int flagEstadoEscritura;
 	private int flagUbicaciónFoco;
-	private int flagTeclado;
 	private GestureDetector gestureDetector;  
+	private TecladoCarrusel tecladoCarrusel = new TecladoCarrusel();
+
 	private ListaOpciones opcionesEditor;
 	private ListaContactos misContactos;
 	//private List<Contacto> misContactos = new ArrayList<Contacto>();
-	private GestureOverlayView gestureOverlayView;
+
 	//private GestureOverlayView gestureOverlayViewCarrusel;
-	//private SurfaceView surfaceView;
+
 	int cantDedosMaxima;
-	TecladoCarrusel tecladoCarrusel = new TecladoCarrusel();
+
 	Boolean swMovimiento = false;
 	List<String> misOpciones = new ArrayList<String>();
 
-	private static final int SWIPE_MIN_DISTANCE = 120;  
-	private static final int SWIPE_MAX_OFF_PATH = 250;  
+	//private static final int SWIPE_MIN_DISTANCE = 120;  
+	//private static final int SWIPE_MAX_OFF_PATH = 250; 
+	final private int SWIPE_MIN_DISTANCE = 100;
+	final private int SWIPE_MIN_VELOCITY = 100;
 	private static final int SWIPE_THRESHOLD_VELOCITY = 200;  
 	private static final int ESCRIBIR_NÚMERO = 0;
 	private static final int ESCRIBIR_TEXTO_SMS = 1;
@@ -64,11 +68,9 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 	private static final int FOCO_ESCRITURA = 3;
 	private static final int FOCO_CONTACTOS = 4;
 	private static final int TIEMPO_ESPERA_PRESIÓN_PARA_OPCIONES = 500; //son milisegundos
-	private static final int TECLADO_GESTURES = 300;
-	private static final int TECLADO_PANELES = 301;
-	private static final int TECLADO_CARRUSEL = 302;
 
-	
+
+
 	//TODO hacer un método que convierta las cadenas en cadenas aceptables para ser escuchadas, ej sos lo lee "ese o ese"
 	//TODO evitar que el tel entre a inactividad, que los botones se pulsen por error
 	/** Called when the activity is first created. */  
@@ -76,7 +78,8 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 	public void onCreate(Bundle savedInstanceState) {  
 		super.onCreate(savedInstanceState);
 
-		cargarTecladoGestures();
+		gestureDetector = new GestureDetector(this, this);
+		gestureDetector.setOnDoubleTapListener(this);
 
 		txtTexto = (TextView) findViewById(R.id.txtTextoSMS);
 		txtTexto.setText("");
@@ -93,52 +96,11 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 		opcionesEditor = new ListaOpciones(misOpciones);
 
 		misContactos = new ListaContactos();
-		
-	    this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-	}
-	
-	private void setTipoTeclado (int tipoTeclado){
-		flagTeclado=tipoTeclado;
-	}
-	
-	private int getTipoTeclado(){
-		return flagTeclado;
+
+		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
 	}
 
-	private void quitarTecladoGestures() {
-		ViewGroup vg = (ViewGroup) (gestureOverlayView.getParent());
-		vg.removeView(gestureOverlayView);
-	}
-	
-	private void cargarTecladoCarrusel() {
-//		gestureOverlayView = new GestureOverlayView(this); 
-		gestureOverlayView.setOrientation(gestureOverlayView.ORIENTATION_VERTICAL);
-		//gestureOverlayView.setGestureStrokeType(gestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
-//		View inflate = getLayoutInflater().inflate(R.layout.main, null);  
-//		gestureOverlayView.addView(inflate);  
-//		gestureOverlayView.addOnGesturePerformedListener(this);  
-//		gestureOverlayView.setOnTouchListener(this);
-		cargarGestosCarrusel();
-		setTipoTeclado(TECLADO_CARRUSEL);
-//		setContentView(gestureOverlayView);
-//		gestureDetector = new GestureDetector(new MyGestureDetectorTecladoGestures(this));
-		hablar("Cambiando al teclado carrusel. Para escribir, movete arriba o abajo buscando la letra que quieras escribir y aceptala con un toque en la pantalla");
-	}
 
-	private void cargarTecladoGestures() {
-		gestureOverlayView = new GestureOverlayView(this); 
-		gestureOverlayView.setOrientation(gestureOverlayView.ORIENTATION_HORIZONTAL);
-		//gestureOverlayView.setGestureStrokeType(gestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
-		View inflate = getLayoutInflater().inflate(R.layout.main, null);  
-		gestureOverlayView.addView(inflate);  
-		gestureOverlayView.addOnGesturePerformedListener(this);  
-		//gestureOverlayView.setOnTouchListener(this);
-		cargarGestosLetras();
-		setContentView(gestureOverlayView);
-		//gestureDetector = new GestureDetector(new MyGestureDetectorTecladoGestures(this));
-		setTipoTeclado(TECLADO_GESTURES);
-		hablar("Cambiando al teclado de gestos. Para escribir, dibujá letras en imprenta en la pantalla");
-	}
 
 	private void setEstadoEscritura(int estado){
 		flagEstadoEscritura = estado;
@@ -156,30 +118,6 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 		return flagUbicaciónFoco;
 	}
 
-	public void onGesturePerformed(GestureOverlayView overlay, Gesture gesture) {  
-		ArrayList<Prediction> predictions = gestureLib.recognize(gesture);
-		String predicción = "";
-		if (predictions.size() > 0) { //se busca la predicción
-			if (predictions.get(0).score > 1.0){
-				predicción = predictions.get(0).name;				
-			}
-		}
-		
-//		if (getTipoTeclado() == TECLADO_CARRUSEL){ //TODO que no se escriba la letra hasta que se pulse
-//			if (!predicción.equals("")){
-//				if (predicción.equals("arriba"))
-//					tecladoCarrusel.seleccionarAnterior();
-//				
-//				if (predicción.equals("abajo"))
-//					tecladoCarrusel.seleccionarSiguiente();
-//				
-//				hablar("letra " + tecladoCarrusel.getTeclaSeleccionada());
-//			}
-//		}
-
-		if (getTipoTeclado() == TECLADO_GESTURES) //somamente se escribe si es por gestos, si es carrusel, el gesto sólo mueve por las teclas
-			escribir(predicción);
-	}
 
 	private void escribir(String predicción) {
 		if (getFoco() == FOCO_CONTACTOS){
@@ -229,7 +167,7 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 				}
 
 				hablar(cadena);
-				
+
 			}
 		}
 	}
@@ -263,7 +201,6 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 	}
 
 	@Override
-	//public boolean onTouch(View v, MotionEvent event) {
 	public boolean onTouchEvent(MotionEvent event) {
 		//en las opciones dejar navegar, en escritura por supus escribir
 		int cantDedosActual = 0;
@@ -297,15 +234,15 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 								if (getFoco() == FOCO_OPCIONES)
 									ejecutarOpciónMenú(opcionesEditor.getLugarSelecciónActual());
 								else {//si no está en opciones, ver si el teclado es carrusel, y ahí escribir con el toque
-									if (getTipoTeclado() == TECLADO_CARRUSEL){
-										escribir(tecladoCarrusel.getTeclaSeleccionada());
-									}
+
+									escribir(tecladoCarrusel.getTeclaSeleccionada());
+
 								}
 							}
 							//si se está en los números, la presión en lugar de abrir opciones
 							//abre los contactos para no escribir número por números que pueda tener un contacto
 						} 
-						
+
 						if (getEstadoEscritura() == ESCRIBIR_NÚMERO) { //TODO que el usuario pueda elegir entre varios números
 							if (getFoco() == FOCO_OPCIONES || getFoco() == FOCO_CONTACTOS){
 								if (misOpciones != null){ //si hay algún contacto en la lista
@@ -329,11 +266,11 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 									setFoco(FOCO_ESCRITURA);
 								}
 							}
-							
+
 							if (getFoco() == FOCO_ESCRITURA){
-								if (getTipoTeclado() == TECLADO_CARRUSEL){
-									escribir(tecladoCarrusel.getTeclaSeleccionada());
-								}
+
+								escribir(tecladoCarrusel.getTeclaSeleccionada());
+
 							}
 						}
 					}
@@ -358,8 +295,6 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 		if (cantDedosMaxima == 2 && cantDedosActual == 2) {
 			if (event.getAction() == event.ACTION_POINTER_2_UP){//si mantiene apretado el dedo uno y suelta el dos
 				borrarCaracter();
-				//quitarTecladoGestures();
-				cargarTecladoCarrusel();
 			}
 		}
 
@@ -368,13 +303,8 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 			if (event.getAction() == event.ACTION_POINTER_3_UP)
 				enviarSMS();
 		}
-//TODO 
-//		if (gestureDetector.onTouchEvent(event))  //se pasa el evento a onTouchEvent del gestureDetector
-//			return true;  
-//		else  
-//			return false; 
-		
-		return false;
+
+		return gestureDetector.onTouchEvent(event); //se le pasa el evento a gestureDetector
 	}
 
 	private void cargarContacto(int indiceContacto){
@@ -391,12 +321,12 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 			cadena += "Cargando el teléfono de " + cont.getNombre() + " con número " + numeroSMS + 
 					". Ahora estás de nuevo en el texto de tu mensaje";
 			if (cadenaSMS.length() > 0)
-					cadena += ". Llevás escrito " + cadenaSMS;
+				cadena += ". Llevás escrito " + cadenaSMS;
 			else
 				cadena += "Todavía no escribiste aquí nada";
-			
+
 			hablar(cadena);
-			
+
 			volverAlTextoMensaje();
 		} else {
 			hablar("El contacto "  + cont.getNombre() + " no tiene número de teléfono");
@@ -406,7 +336,7 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 	private void volverAlTextoMensaje() {
 		setEstadoEscritura(ESCRIBIR_TEXTO_SMS);
 		setFoco(FOCO_ESCRITURA);
-		cargarGestosLetras();
+		cambiarALetras();
 	}
 
 	private void borrarCaracter() {
@@ -464,186 +394,16 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 		((MiApp)super.getApplication()).hablar(cadena);
 	}
 
-//	class MyGestureDetectorTecladoGestures extends SimpleOnGestureListener {  
-//		Context contexto;
-//
-//		public MyGestureDetectorTecladoGestures (Context miContexto){
-//			contexto = miContexto;
-//		}
-//
-//		@Override  
-//		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,  
-//				float velocityY) {
-//			Boolean swDeslizaHaciaIzquierda=false;
-//			Boolean swDeslizaHaciaDerecha=false;
-//			Boolean swEmpiezaIzquierdaAfuera=false;
-//			Boolean swDeslizaHaciaAbajo=false;
-//			Boolean swDeslizaHaciaArriba=false;
-//			
-//			try {  
-//
-//				//-------se evalúa dónde empieza el delizamiento y en qué dirección va --------
-//				if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)  
-//					return false; 
-//
-//
-//				if (e1.getX() < 10.0)
-//					swEmpiezaIzquierdaAfuera=true;
-//				else
-//					swEmpiezaIzquierdaAfuera=false;
-//
-//				if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE //deslizar el dedo horizontal a la izquierda 
-//						&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) { 
-//					swDeslizaHaciaIzquierda = true;
-//					swDeslizaHaciaDerecha = false;
-//
-//				} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE //deslizar el dedo horizontal a la derecha  
-//						&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-//					swDeslizaHaciaIzquierda = false;
-//					swDeslizaHaciaDerecha = true;
-//				}
-//				
-//				if (getTipoTeclado() == TECLADO_CARRUSEL){
-//					if (e1.getY() > e2.getY()) { //hacia arriba 
-////						swDeslizaHaciaAbajo = true;
-////						swDeslizaHaciaArriba = false;
-//						tecladoCarrusel.seleccionarAnterior();
-//						hablar(tecladoCarrusel.getTeclaSeleccionada());
-//
-//					} else if (e1.getY() < e2.getY()) { //hacia abajo  
-////						swDeslizaHaciaAbajo = false;
-////						swDeslizaHaciaArriba = true;
-//						tecladoCarrusel.seleccionarSiguiente();
-//						hablar(tecladoCarrusel.getTeclaSeleccionada());
-//					}
-//				}
-//				//----------------fin evaluar deslizamiento-----------------
-//
-//				switch (getFoco()){
-//				case FOCO_CONTACTOS:
-//					//						if (swEmpiezaIzquierdaAfuera){
-//					//							
-//					//						}
-//
-//					if (swDeslizaHaciaIzquierda){
-//						misContactos.seleccionarAnterior();
-//						hablar(misContactos.getContactoSeleccionado().getNombre());
-//					}
-//
-//					if (swDeslizaHaciaDerecha){
-//						misContactos.seleccionarSiguiente();
-//						hablar(misContactos.getContactoSeleccionado().getNombre());
-//					}
-//
-//					break;
-//				case FOCO_OPCIONES:
-//					//						if (swEmpiezaIzquierdaAfuera){
-//					//							
-//					//						}
-//
-//					if (swDeslizaHaciaIzquierda){
-//						opcionesEditor.seleccionarAnterior();
-//						hablar(opcionesEditor.leerSelección());
-//					}
-//
-//					if (swDeslizaHaciaDerecha){
-//						opcionesEditor.seleccionarSiguiente();
-//						hablar(opcionesEditor.leerSelección());
-//					}
-//
-//					break;
-//
-//				case FOCO_ESCRITURA:
-//					//el deslizamiento horizontal viene desde fuera por la izquierda: borrar
-//					if (swEmpiezaIzquierdaAfuera){
-//						borrarCaracter();
-//						return true;
-//					}
-//
-//					//hacia la izquierda
-//					if (swDeslizaHaciaIzquierda){
-//						if (flagEstadoEscritura != ESCRIBIR_NÚMERO){ //si no está en escribir número
-//							cambiarANúmeros();
-//							
-//							flagEstadoEscritura = ESCRIBIR_NÚMERO;
-//							String cadena = "Cambiando al número del destinatario. "; 
-//							if (numeroSMS.length() > 0)
-//								cadena += "Ya está escrito " + numeroSMS;
-//							else
-//								cadena += "No hay escrito ningún número";
-//
-//							hablar(cadena);
-//						} else {
-//							hablar("Ya estás en el número del destinatario, para cambiar al texto del " +
-//									"mensaje arrastrá el dedo hacia la derecha. Hasta ahora el número que " +
-//									"escribiste es " + numeroSMS);
-//						}
-//						return true;
-//					}
-//
-//					//hacia la derecha
-//					if (swDeslizaHaciaDerecha){
-//						if (flagEstadoEscritura != ESCRIBIR_TEXTO_SMS){
-//							cambiarALetras();
-//								
-//							flagEstadoEscritura = ESCRIBIR_TEXTO_SMS;
-//							String cadena = "Cambiando al texto del mensaje. "; 
-//							if (cadenaSMS.length() > 0)
-//								cadena += "Llevás escrito " + cadenaSMS;
-//							else
-//								cadena += "No hay escrito nada en el mensaje";
-//
-//							hablar(cadena);
-//						} else {
-//							hablar("Ya estás en el texto del mensaje, para cambiar al número del " +
-//									"destinatario arrastrá el dedo hacia la izquierda. Hasta ahora el " +
-//									"mensaje que llevás escrito es " + cadenaSMS);
-//						}
-//						return true;
-//					}
-//					break;
-//				}
-//
-//
-//
-//			} catch (Exception e) {  
-//				Log.e("GestureTest-MyGestureDetector", "Error en onFling mensaje: " + e.getMessage());  
-//			}  
-//			return false;  
-//		}	
-//	}  
-//	
-	
+
+
 	private void cambiarANúmeros() {
-		if (getTipoTeclado() == TECLADO_GESTURES)
-			cargarGestosNumeros();
-		
-		if (getTipoTeclado() == TECLADO_CARRUSEL)
-			tecladoCarrusel.cambiarATecladoNumérico();
+		tecladoCarrusel.cambiarATecladoNumérico();
 	}
 
 	private void cambiarALetras() {
-		if (getTipoTeclado() == TECLADO_GESTURES)
-			cargarGestosLetras();
-		
-		if (getTipoTeclado() == TECLADO_CARRUSEL)
-			tecladoCarrusel.cambiarATecladoAlfabético();
+		tecladoCarrusel.cambiarATecladoAlfabético();
 	}
 
-	private void cargarGestosLetras() {
-		gestureLib = GestureLibraries.fromRawResource(this, R.raw.gestures_letras);
-		gestureLib.load();
-	}
-
-	private void cargarGestosNumeros() {
-		gestureLib = GestureLibraries.fromRawResource(this, R.raw.gestures_numeros);
-		gestureLib.load();
-	}  
-	
-	private void cargarGestosCarrusel() {
-		gestureLib = GestureLibraries.fromRawResource(this, R.raw.gestures_carrusel);
-		gestureLib.load();
-	}
 
 	private void sendSMS(String phoneNumber, String message)
 	{        
@@ -745,7 +505,7 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 			misContactos = listarSóloContactosConTel(misContactos);
 			ordenarContactosPorNombre();
 		}
-		
+
 		protected List<Contacto> listarSóloContactosConTel(List<Contacto> misCont){
 			List<Contacto> misContConTel = new ArrayList<Contacto>();
 			if (misCont.size() > 0){
@@ -755,7 +515,7 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 					}
 				}
 			}
-			
+
 			return misContConTel;
 		}
 
@@ -823,26 +583,26 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 			cursor.close();
 			return misContactos;
 		}//obtenerInfoContactos
-		
-//		private void cargarNombresDesdeLista(){
-//			if (misContactos != null){
-//				for (int i=0; i < misContactos.size(); i++){
-//					nombresContactos.add(misContactos.get(i).getNombre());
-//				}
-//			}
-//		}
-		
+
+		//		private void cargarNombresDesdeLista(){
+		//			if (misContactos != null){
+		//				for (int i=0; i < misContactos.size(); i++){
+		//					nombresContactos.add(misContactos.get(i).getNombre());
+		//				}
+		//			}
+		//		}
+
 		private void ordenarContactosPorNombre(){
 			Collections.sort(misContactos);
 			//cargarNombresDesdeLista();
 		}
-		
+
 		public int saltarALetra(String letra){
 			if (misContactos != null){
 				for (int i=0; i < misContactos.size(); i++){
 					if (misContactos.get(i).getNombre().toUpperCase().startsWith(letra.toUpperCase())){
-					índiceActual = i;
-					return i;
+						índiceActual = i;
+						return i;
 					}
 				}
 				return -1;//si no hay contactos con esa letra
@@ -900,7 +660,7 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 				índiceActual = 0;
 		}
 	} //CLASS listaContactos
-	
+
 	public boolean onDoubleTap(MotionEvent e) {
 		// TODO Auto-generated method stub
 		hablar("entré a on double tap");
@@ -968,11 +728,156 @@ public class SMSEditor extends Activity implements GestureDetector.OnGestureList
 		return false;
 	}
 
-	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+	public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX,
 			float velocityY) {
-		// TODO Auto-generated method stub
-		hablar("entré a on fling");
-		return false;
-	}
+		final float ev1x = event1.getX();
+		final float ev1y = event1.getY();
+		final float ev2x = event2.getX();
+		final float ev2y = event2.getY();
+		final float xdiff = Math.abs(ev1x - ev2x);
+		final float ydiff = Math.abs(ev1y - ev2y);
+		final float xvelocity = Math.abs(velocityX);
+		final float yvelocity = Math.abs(velocityY);
+		Boolean swDeslizaHaciaIzquierda=false;
+		Boolean swDeslizaHaciaDerecha=false;
+		Boolean swEmpiezaIzquierdaAfuera=false;
+		Boolean swDeslizaHaciaAbajo=false;
+		Boolean swDeslizaHaciaArriba=false;
+
+		try { 
+			if(xvelocity > this.SWIPE_MIN_VELOCITY && xdiff > this.SWIPE_MIN_DISTANCE)
+			{
+				if(ev1x > ev2x) //Swipe Left
+				{
+					swDeslizaHaciaIzquierda=true;
+				}
+				else //Swipe Right
+				{
+					swDeslizaHaciaDerecha=true;
+				}
+			}
+			else if(yvelocity > this.SWIPE_MIN_VELOCITY && ydiff > this.SWIPE_MIN_DISTANCE)
+			{
+				if(ev1y > ev2y) //Swipe Up
+				{
+					swDeslizaHaciaArriba=true;
+				}
+				else //Swipe Down
+				{
+					swDeslizaHaciaAbajo=true;
+				}
+
+			}
+
+
+			if (swDeslizaHaciaArriba) { //hacia arriba 
+				//					swDeslizaHaciaAbajo = true;
+				//					swDeslizaHaciaArriba = false;
+				tecladoCarrusel.seleccionarAnterior();
+				hablar(tecladoCarrusel.getTeclaSeleccionada());
+
+			} 
+
+			if (swDeslizaHaciaAbajo) { //hacia abajo  
+				//					swDeslizaHaciaAbajo = false;
+				//					swDeslizaHaciaArriba = true;
+				tecladoCarrusel.seleccionarSiguiente();
+				hablar(tecladoCarrusel.getTeclaSeleccionada());
+			}
+
+			//----------------fin evaluar deslizamiento-----------------
+
+			switch (getFoco()){
+			case FOCO_CONTACTOS:
+				//						if (swEmpiezaIzquierdaAfuera){
+				//							
+				//						}
+
+				if (swDeslizaHaciaIzquierda){
+					misContactos.seleccionarAnterior();
+					hablar(misContactos.getContactoSeleccionado().getNombre());
+				}
+
+				if (swDeslizaHaciaDerecha){
+					misContactos.seleccionarSiguiente();
+					hablar(misContactos.getContactoSeleccionado().getNombre());
+				}
+
+				break;
+			case FOCO_OPCIONES:
+				//						if (swEmpiezaIzquierdaAfuera){
+				//							
+				//						}
+
+				if (swDeslizaHaciaIzquierda){
+					opcionesEditor.seleccionarAnterior();
+					hablar(opcionesEditor.leerSelección());
+				}
+
+				if (swDeslizaHaciaDerecha){
+					opcionesEditor.seleccionarSiguiente();
+					hablar(opcionesEditor.leerSelección());
+				}
+
+				break;
+
+			case FOCO_ESCRITURA:
+				//el deslizamiento horizontal viene desde fuera por la izquierda: borrar
+				if (swEmpiezaIzquierdaAfuera){
+					borrarCaracter();
+					return true;
+				}
+
+				//hacia la izquierda
+				if (swDeslizaHaciaIzquierda){
+					if (flagEstadoEscritura != ESCRIBIR_NÚMERO){ //si no está en escribir número
+						cambiarANúmeros();
+
+						flagEstadoEscritura = ESCRIBIR_NÚMERO;
+						String cadena = "Cambiando al número del destinatario. "; 
+						if (numeroSMS.length() > 0)
+							cadena += "Ya está escrito " + numeroSMS;
+						else
+							cadena += "No hay escrito ningún número";
+
+						hablar(cadena);
+					} else {
+						hablar("Ya estás en el número del destinatario, para cambiar al texto del " +
+								"mensaje arrastrá el dedo hacia la derecha. Hasta ahora el número que " +
+								"escribiste es " + numeroSMS);
+					}
+					return true;
+				}
+
+				//hacia la derecha
+				if (swDeslizaHaciaDerecha){
+					if (flagEstadoEscritura != ESCRIBIR_TEXTO_SMS){
+						cambiarALetras();
+
+						flagEstadoEscritura = ESCRIBIR_TEXTO_SMS;
+						String cadena = "Cambiando al texto del mensaje. "; 
+						if (cadenaSMS.length() > 0)
+							cadena += "Llevás escrito " + cadenaSMS;
+						else
+							cadena += "No hay escrito nada en el mensaje";
+
+						hablar(cadena);
+					} else {
+						hablar("Ya estás en el texto del mensaje, para cambiar al número del " +
+								"destinatario arrastrá el dedo hacia la izquierda. Hasta ahora el " +
+								"mensaje que llevás escrito es " + cadenaSMS);
+					}
+					return true;
+				}
+				break;
+			}
+
+
+
+		} catch (Exception e) {  
+			Log.e("GestureTest-MyGestureDetector", "Error en onFling mensaje: " + e.getMessage());  
+		}  
+		return false;  
+	}	
 
 }  

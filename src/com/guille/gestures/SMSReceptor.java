@@ -15,7 +15,7 @@ import android.widget.Toast;
 public class SMSReceptor extends BroadcastReceiver
 {
 	//TextToSpeech voz2;
-	SMSEditor miClaseGestures = new SMSEditor();
+	SMSEditorTecladoGestures miClaseGestures = new SMSEditorTecladoGestures();
 	
     @Override
     public void onReceive(Context context, Intent intent) 

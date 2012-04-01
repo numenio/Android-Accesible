@@ -5,6 +5,7 @@ import java.util.Locale;
 import android.app.Application;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+//import com.google.tts
 
 public class MiApp extends Application implements TextToSpeech.OnInitListener {
 	TextToSpeech voz;
@@ -12,11 +13,12 @@ public class MiApp extends Application implements TextToSpeech.OnInitListener {
 	public void onInit(int status) {
 		try {
 			// TODO Auto-generated method stub
-			Locale loc = new Locale("es", "", "");
+			//Locale loc = new Locale("es", "", "");
 			//if (voz.isLanguageAvailable)
-			voz.setLanguage(loc);
+			//voz.setLanguage(loc);
+			voz.setLanguage(java.util.Locale.getDefault());
 			//voz.speak("hola mundo", TextToSpeech.QUEUE_FLUSH, null);
-			hablar("hola mundo");
+			hablar("Iniciando la aplicación de mensajes");
 		} catch (Exception ex) {
 			Log.e("Aplicación", "Error en onInit: " + ex.getMessage());
 		}
