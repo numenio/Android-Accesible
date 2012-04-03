@@ -1,11 +1,8 @@
 package com.guille.gestures;
 
-import java.util.Locale;
-
 import android.app.Application;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
-//import com.google.tts
 
 public class MiApp extends Application implements TextToSpeech.OnInitListener {
 	TextToSpeech voz;

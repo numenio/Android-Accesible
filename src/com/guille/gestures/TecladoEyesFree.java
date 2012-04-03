@@ -1,6 +1,7 @@
 package com.guille.gestures;
 
-import com.guille.eyesFree.GestureListener;
+import com.guille.gestures.IGestureListener;
+import com.guille.gestures.Enums.Gesture;
 
 import android.content.Context;
 import android.view.MotionEvent;
@@ -14,16 +15,7 @@ import android.view.View;
  * @author  Nolan Darilek
  */
 
-public class tecladoEyesFree extends View {
-
-	/**
-	 * An enumeration of the possible gestures.
-	 */
-	public enum Gesture {
-		ARRIBA_IZQUIERDA, ARRIBA, ARRIBA_DERECHA, IZQUIERDA, CENTRO, DERECHA, ABAJO_DERECHA, ABAJO, ABAJO_IZQUIERDA, ARRIBA_LEJOS, ABAJO_LEJOS, IZQUIERDA_LEJOS, 
-		DERECHA_LEJOS, ARRIBA_DERECHA_LEJOS, ARRIBA_IZQUIERDA_LEJOS, ABAJO_DERECHA_LEJOS, ABAJO_IZQUIERDA_LEJOS
-	}
-
+public class TecladoEyesFree extends View {
 	private final double left = 0;
 	private final double upleft = Math.PI * .25;
 	private final double up = Math.PI * .5;
@@ -49,14 +41,14 @@ public class tecladoEyesFree extends View {
 	 */
 	private static final double RADIUS_TOLERANCE_INCHES = 0.15;
 
-	private GestureListener cb = null;
+	private IGestureListener cb = null;
 	private double downX;
 	private double downY;
 	private Gesture currentGesture;
 	
 	
 
-	public tecladoEyesFree(Context context, GestureListener callback) {
+	public TecladoEyesFree(Context context, IGestureListener callback) {
 		super(context);
 		cb = callback;
 		mEdgeTolerance = (int) (EDGE_TOLERANCE_INCHES
@@ -65,7 +57,7 @@ public class tecladoEyesFree extends View {
 				* getResources().getDisplayMetrics().densityDpi);
 	}
 
-	public tecladoEyesFree(Context context) {
+	public TecladoEyesFree(Context context) {
 		super(context);
 		mEdgeTolerance = (int) (EDGE_TOLERANCE_INCHES
 				* getResources().getDisplayMetrics().densityDpi);
@@ -73,7 +65,7 @@ public class tecladoEyesFree extends View {
 				* getResources().getDisplayMetrics().densityDpi);
 	}
 
-	public void setGestureListener(GestureListener callback) {
+	public void setGestureListener(IGestureListener callback) {
 		cb = callback;
 	}
 
