@@ -55,10 +55,7 @@ public class SMSReceptor extends BroadcastReceiver
             }
             //---display the new SMS message---
             Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
-            //voz2.speak(str, TextToSpeech.QUEUE_FLUSH, null); //acá me tira un error
-            //miClaseGestures.voz.speak(str, TextToSpeech.QUEUE_FLUSH, null);
-            ((MiApp)context.getApplicationContext()).hablar(str);
-            
+            ((MiApp)context.getApplicationContext()).hablar(str.toLowerCase());
         }                         
     }
     

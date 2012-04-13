@@ -19,7 +19,7 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="hello">Hola mundo, Soy una aplicación!</string>
-    <string name="app_name">Primer Prueba Gestures</string>
+    <string name="app_name">Mensajes Accesibles</string>
     
     <!-- Title for Latin keyboard  -->
     <string name="ime_name">Sample Soft Keyboard</string>

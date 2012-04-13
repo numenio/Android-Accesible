@@ -9,12 +9,13 @@ public class MiApp extends Application implements TextToSpeech.OnInitListener {
 	
 	public void onInit(int status) {
 		try {
-			// TODO Auto-generated method stub
 			//Locale loc = new Locale("es", "", "");
 			//if (voz.isLanguageAvailable)
 			//voz.setLanguage(loc);
+			if (status == TextToSpeech.ERROR)
+				Log.d("Resultado onInit", Integer.toString(status));
+			
 			voz.setLanguage(java.util.Locale.getDefault());
-			//voz.speak("hola mundo", TextToSpeech.QUEUE_FLUSH, null);
 			hablar("Iniciando la aplicación de mensajes");
 		} catch (Exception ex) {
 			Log.e("Aplicación", "Error en onInit: " + ex.getMessage());
@@ -24,15 +25,14 @@ public class MiApp extends Application implements TextToSpeech.OnInitListener {
 
 	@Override
 	public void onCreate() {
-		// TODO Auto-generated method stub
 		super.onCreate();
 		voz = new TextToSpeech(this, this);
-		hablar("hola mundo");
+//		TTS voz = TTS.getInstance();
+		hablar("Iniciando la aplicación de mensajes");
 	}
 
 	@Override
 	public void onTerminate() {
-		// TODO Auto-generated method stub
 		super.onTerminate();
 		voz.shutdown();
 	}
