@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.guille.gestures.Enums.Tecla;
-import com.guille.gestures.Enums.TipoCírculo;
+import com.guille.gestures.Enums.TipoTecla;
 //import com.guille.gestures.Enums.TeclaComando;
 //import com.guille.gestures.Enums.TeclaLetra;
 //import com.guille.gestures.Enums.TeclaNúmero;
@@ -13,6 +13,7 @@ import com.guille.gestures.Enums.Gesture;
 
 import android.content.Context;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -25,7 +26,7 @@ import android.view.View;
  * 
  */
 
-public class TecladoEyesFree extends View implements IGestureListener {
+public class TecladoEyesFree extends View implements IGestureListener, ITeclado{
 	private final double left = 0;
 	private final double upleft = Math.PI * .25;
 	private final double up = Math.PI * .5;
@@ -59,6 +60,8 @@ public class TecladoEyesFree extends View implements IGestureListener {
 	private TecladoEnCírculos teclado = null;
 	private Context contexto = null;
 	private Vibrator vibe;
+	private boolean swUsóAtajoTeclado;
+//	private EvaluadorMovimientosEnPantalla miEvaluadorDeMovimientos;
 	private static final long[] VIBE_PATTERN_START = {0, 70};
 	private static final long[] VIBE_PATTERN_CHANGE = {0, 30};
 	private static final long[] VIBE_PATTERN_FINISH = {0, 100};
@@ -79,33 +82,28 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		contexto = context;
 		teclado = new TecladoEnCírculos(swTecladoDoble);
 		vibe = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+		setKeepScreenOn(true); //se evita que la pantalla se bloquee
+//		miEvaluadorDeMovimientos = new EvaluadorMovimientosEnPantalla();
 		mEdgeTolerance = (int) (EDGE_TOLERANCE_INCHES
 				* getResources().getDisplayMetrics().densityDpi);
 		mRadiusTolerance = (int) (RADIUS_TOLERANCE_INCHES
 				* getResources().getDisplayMetrics().densityDpi);
 	}
 
-	public TecladoEyesFree(Context context) {
-		super(context);
-		contexto = context;
-		vibe = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-		mEdgeTolerance = (int) (EDGE_TOLERANCE_INCHES
-				* getResources().getDisplayMetrics().densityDpi);
-		mRadiusTolerance = (int) (RADIUS_TOLERANCE_INCHES
-				* getResources().getDisplayMetrics().densityDpi);
-	}
-
-	//	public void setGestureListener(IGestureListener callback) {
-	//		cb = callback;
-	//	}
-	private boolean swUsóAtajoTeclado;
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (evalAtajoTeclado(event, true)){ //si hay un atajo, como enviar o borrar, se lanza el atajo y se deja de evaluar el evento
 			swUsóAtajoTeclado = true;
 			return true;
 		}
-
+		
+//		miEvaluadorDeMovimientos.ingresarMovimiento(event);
+//		if (miEvaluadorDeMovimientos.isEmpezandoIzquierdaAfuera()){
+//			hablar("empezó desde la izquierda afuera");
+//			return true;
+//		}
+//		
+//		if (miEvaluadorDeMovimientos.isMovimientoChiquito()) return true; //si el mov es muy pequeño, no se hace nada
 
 		int action = event.getAction();
 		float x = event.getX();
@@ -219,8 +217,20 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		
 		return false;
 	}
+	
+	public void mostrarSóloNúmeros(){
+		teclado.mostrarSóloCírculosNúmeros();
+	}
+	
+	public void mostrarLetrasNúmeros(){
+		teclado.mostrarLetrasNúmerosAcentos();
+	}
+	
+	public void mostrarTodasLasTeclas(){
+		teclado.mostrarTodosLosTiposDeLetra();
+	}
 
-	public Gesture evalMotion(double x, double y) {
+	private Gesture evalMotion(double x, double y) {
 		boolean movedFar = false;
 		boolean nearEdge = false;
 
@@ -307,6 +317,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				seleccionarTeclaEn(6);
 			} else {
 //				onGestureChange(Gesture.ARRIBA);
+//				teclado.getCírculoActual().seleccionarTeclaCentro();
 				hablar("Pasar a los números");
 			}
 			break;	
@@ -316,6 +327,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				seleccionarTeclaEn(7);
 			} else {
 //				onGestureChange(Gesture.ARRIBA_DERECHA);
+//				teclado.getCírculoActual().seleccionarTeclaCentro();
 				hablar("Pasar a las letras");
 			}
 			break;
@@ -325,6 +337,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				seleccionarTeclaEn(9);
 			} else {
 				//onGestureChange(Gesture.ABAJO);
+//				teclado.getCírculoActual().seleccionarTeclaCentro(); //TODO para que cambie la selec
 				hablar("espacio");
 			}
 			break;
@@ -334,6 +347,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				seleccionarTeclaEn(10);
 			} else {
 //				onGestureChange(Gesture.ABAJO_DERECHA);
+//				teclado.getCírculoActual().seleccionarTeclaCentro();
 				hablar("borrar");
 			}
 			break;
@@ -343,6 +357,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				seleccionarTeclaEn(8);
 			} else {
 //				onGestureChange(Gesture.ABAJO_IZQUIERDA);
+//				teclado.getCírculoActual().seleccionarTeclaCentro();
 				hablar("enviar el mensaje");
 			}
 			break;
@@ -352,6 +367,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				seleccionarTeclaEn(11);
 			} else {
 //				onGestureChange(Gesture.ARRIBA_IZQUIERDA);
+//				teclado.getCírculoActual().seleccionarTeclaCentro();
 				hablar("Pasar a los símbolos");
 			}
 			break;
@@ -375,14 +391,13 @@ public class TecladoEyesFree extends View implements IGestureListener {
 			vibe.vibrate(VIBE_PATTERN_CHANGE, -1);
 			break;
 		}
-		
 	}
 
 	private void seleccionarTeclaEn(int lugar) {
 		if (teclado.getCírculoActual().getTeclaActual() != teclado.getCírculoActual().getTeclaEn(lugar)){//sólo selecciona si no es la que ya está seleccionada
 			Tecla miTecla = teclado.getCírculoActual().getTeclaEn(lugar);
-			if (miTecla != Tecla.NINGUNA)
-				hablar(UtilesCadena.traducirCarácterParaLeer(miTecla));
+			if (miTecla != Tecla.NINGUNA) //si es distinto de ninguna
+				hablar(UtilesCadena.traducirTeclaParaLeer(miTecla));
 			else {
 				String cadena = "Este círculo sólo tiene " + teclado.getCírculoActual().getCantidadLugaresUsados();
 				switch(teclado.getCírculoActual().getTipoCírculo()){
@@ -407,28 +422,6 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		}
 	}
 	
-	private String armarCadenaSegúnTipoCírculoActual(){
-		String cadena="";
-		switch(teclado.getCírculoActual().getTipoCírculo()){
-		case LETRAS:
-			cadena = " de letras ";
-			break;
-		case COMANDOS:
-			cadena = " de comandos ";
-			break;
-		case LETRAS_ACENTUADAS:
-			cadena = " de vocales acentuadas y diéresis ";
-			break;
-		case NÚMEROS:
-			cadena = " de números ";
-			break;
-		case SÍMBOLOS:
-			cadena = " de símbolos ";
-			break;
-		}
-		return cadena;
-	}
-
 	public void onGestureFinish(Gesture g) {
 		vibe.vibrate(VIBE_PATTERN_FINISH, -1);
 		switch (g) {
@@ -480,7 +473,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		}
 	}
 	
-	public String armarCadenaPasarAlCírculoAnterior(){
+	private String armarCadenaPasarAlCírculoAnterior(){
 		String cadena = "";
 		if (!teclado.getCírculoActual().isPrimerCírculo()){
 			cadena = "Pasando al círculo " + armarCadenaSegúnTipoCírculoActual() + " que va desde " +  teclado.getCírculoActual().getNombrePrimeraTecla() + 
@@ -493,7 +486,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		return cadena;
 	}
 	
-	public String armarCadenaPasarAlCírculoSiguiente(){
+	private String armarCadenaPasarAlCírculoSiguiente(){
 		String cadena = "";
 		if (!teclado.getCírculoActual().isÚltimoCírculo()){
 			cadena = "Pasando al círculo " + armarCadenaSegúnTipoCírculoActual() + " que va desde " +  teclado.getCírculoActual().getNombrePrimeraTecla() + 
@@ -506,6 +499,29 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		return cadena;
 	}
 	
+	private String armarCadenaSegúnTipoCírculoActual(){
+		String cadena="";
+		switch(teclado.getCírculoActual().getTipoCírculo()){
+		case LETRAS:
+			cadena = " de letras ";
+			break;
+		case COMANDOS:
+			cadena = " de comandos ";
+			break;
+		case LETRAS_ACENTUADAS:
+			cadena = " de vocales acentuadas y diéresis ";
+			break;
+		case NÚMEROS:
+			cadena = " de números ";
+			break;
+		case SÍMBOLOS:
+			cadena = " de símbolos ";
+			break;
+		}
+		return cadena;
+	}
+
+
 //	private Tecla pasarGestoATecla (Gesture gesto){//TODO hacer el método
 //		Tecla miTecla = Tecla.NINGUNA;
 //		return miTecla; 
@@ -522,7 +538,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 			private int cantidadLugaresDisponibles;
 			private int últimoLugarUsado;
 			private int primerLugarDisponible;
-			private TipoCírculo tipoCírculo;
+			private TipoTecla tipoCírculo;
 			private boolean swTieneCírculoExterno;
 			private boolean swPrimerCírculo=false;
 			private boolean swÚltimoCírculo=false;
@@ -577,10 +593,10 @@ public class TecladoEyesFree extends View implements IGestureListener {
 			private void setPrimerLugarDisponible(int primerLugarDisponible) {
 				this.primerLugarDisponible = primerLugarDisponible;
 			}
-			public TipoCírculo getTipoCírculo() {
+			public TipoTecla getTipoCírculo() {
 				return tipoCírculo;
 			}
-			private void setTipoCírculo(TipoCírculo tipo) {
+			private void setTipoCírculo(TipoTecla tipo) {
 				this.tipoCírculo = tipo;
 			}
 			
@@ -622,7 +638,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 			}
 			
 			public String getNombrePrimeraTecla(){
-				return UtilesCadena.traducirCarácterParaLeer(getPrimeraTecla());
+				return UtilesCadena.traducirTeclaParaLeer(getPrimeraTecla());
 			}
 			
 			public Tecla getÚltimaTecla(){
@@ -637,7 +653,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 			}
 			
 			public String getNombreÚltimaTecla(){
-					return UtilesCadena.traducirCarácterParaLeer(getÚltimaTecla());
+					return UtilesCadena.traducirTeclaParaLeer(getÚltimaTecla());
 			}
 			
 			public Tecla getTeclaCentro(){
@@ -688,8 +704,6 @@ public class TecladoEyesFree extends View implements IGestureListener {
 			}
 			
 		}
-		
-		
 
 		private Enums misListas = new Enums();
 		private List<Tecla> misTeclasComando = misListas.getTeclasComando();
@@ -722,6 +736,11 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		private int lugarSelecciónActual;
 		private List<PanelEnCírculo> miTeclado = new ArrayList<TecladoEnCírculos.PanelEnCírculo>();
 		private boolean swTecladoDoble;
+		private boolean swMostrarCículosLetras=true;
+		private boolean swMostrarCículosNúmeros=true;
+		private boolean swMostrarCículosLetrasAcentuadas=true;
+		private boolean swMostrarCículosSímbolos=true;
+		private boolean swMostrarCículosComandos=true;
 		
 		
 		public TecladoEnCírculos(boolean swtecladoDoble){
@@ -737,7 +756,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				if (cantTeclasLetra % letrasPorCírculo != 0) //se ve si queda resto para sumarle un círculo más
 					cantCírculosLetra+=1;
 
-				cargarTeclasEnCírculos(misTeclasLetras, cantCírculosLetra, TipoCírculo.LETRAS);
+				cargarTeclasEnCírculos(misTeclasLetras, cantCírculosLetra, TipoTecla.LETRAS);
 			}
 			lugarInicioCírculoLetras=0;
 
@@ -747,7 +766,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				if (cantTeclasLetrasAcentuadas % letrasPorCírculo != 0)
 					cantCírculosLetrasAcentuadas+=1;
 				
-				cargarTeclasEnCírculos(misTeclasLetrasAcentuadas, cantCírculosLetrasAcentuadas, TipoCírculo.LETRAS_ACENTUADAS);
+				cargarTeclasEnCírculos(misTeclasLetrasAcentuadas, cantCírculosLetrasAcentuadas, TipoTecla.LETRAS_ACENTUADAS);
 			}
 			lugarInicioCírculoLetrasAcentuadas = lugarInicioCírculoLetras + cantCírculosLetra; //porque el círculo de letras empieza en 0
 
@@ -757,7 +776,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				if (cantTeclasNúmero % letrasPorCírculo != 0)
 					cantCírculosNúmero+=1;
 				
-				cargarTeclasEnCírculos(misTeclasNúmeros, cantCírculosNúmero, TipoCírculo.NÚMEROS);
+				cargarTeclasEnCírculos(misTeclasNúmeros, cantCírculosNúmero, TipoTecla.NÚMEROS);
 			}
 			lugarInicioCírculoNúmero = lugarInicioCírculoLetrasAcentuadas + cantCírculosLetrasAcentuadas; //porque el círculo de letras empieza en 0
 
@@ -767,7 +786,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				if (cantTeclasSímbolo % letrasPorCírculo != 0)
 					cantCírculosSímbolo+=1;
 				
-				cargarTeclasEnCírculos(misTeclasSímbolos, cantCírculosSímbolo, TipoCírculo.SÍMBOLOS);
+				cargarTeclasEnCírculos(misTeclasSímbolos, cantCírculosSímbolo, TipoTecla.SÍMBOLOS);
 			}
 			lugarInicioCírculoSímbolo = lugarInicioCírculoNúmero + cantCírculosNúmero; //porque el círculo de letras empieza en 0
 
@@ -777,7 +796,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 				if (cantTeclasComando % letrasPorCírculo != 0)
 					cantCírculosComando+=1;
 				
-				cargarTeclasEnCírculos(misTeclasComando, cantCírculosComando, TipoCírculo.COMANDOS);
+				cargarTeclasEnCírculos(misTeclasComando, cantCírculosComando, TipoTecla.COMANDOS);
 			}
 			lugarInicioCírculoComando = lugarInicioCírculoSímbolo + cantCírculosComando; //porque el círculo de letras empieza en 0
 			
@@ -797,6 +816,47 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		
 		private void cargarBanderaPrimerCírculo(){
 			miTeclado.get(0).setSwPrimerCírculo(true);
+		}
+		
+		private boolean isMostrarCículosLetras() {
+			return swMostrarCículosLetras;
+		}
+
+		public void setMostrarCículosLetras(boolean swMostrarCículosLetras) {
+			this.swMostrarCículosLetras = swMostrarCículosLetras;
+		}
+
+		private boolean isMostrarCículosNúmeros() {
+			return swMostrarCículosNúmeros;
+		}
+
+		public void setMostrarCículosNúmeros(boolean swMostrarCículosNúmeros) {
+			this.swMostrarCículosNúmeros = swMostrarCículosNúmeros;
+		}
+
+		private boolean isMostrarCículosLetrasAcentuadas() {
+			return swMostrarCículosLetrasAcentuadas;
+		}
+
+		public void setMostrarCículosLetrasAcentuadas(
+				boolean swMostrarCículosLetrasAcentuadas) {
+			this.swMostrarCículosLetrasAcentuadas = swMostrarCículosLetrasAcentuadas;
+		}
+
+		private boolean isMostrarCículosSímbolos() {
+			return swMostrarCículosSímbolos;
+		}
+
+		public void setMostrarCículosSímbolos(boolean swMostrarCículosSímbolos) {
+			this.swMostrarCículosSímbolos = swMostrarCículosSímbolos;
+		}
+
+		private boolean isMostrarCículosComandos() {
+			return swMostrarCículosComandos;
+		}
+
+		public void setMostrarCículosComandos(boolean swMostrarCículosComandos) {
+			this.swMostrarCículosComandos = swMostrarCículosComandos;
 		}
 		
 		private boolean isSwTecladoDoble() {
@@ -827,7 +887,7 @@ public class TecladoEyesFree extends View implements IGestureListener {
 			miTeclado.add(círculoACargar);
 		}
 		
-		private boolean cargarTeclasEnCírculos(List<Tecla> teclas, int cantidadCírculos, TipoCírculo tipo){
+		private boolean cargarTeclasEnCírculos(List<Tecla> teclas, int cantidadCírculos, TipoTecla tipo){
 			int teclasYaInsertadas = 0;
 			int contador;
 			List<Tecla> misTeclas;
@@ -861,11 +921,64 @@ public class TecladoEyesFree extends View implements IGestureListener {
 		public void pasarAlSiguienteCírculo(){
 			if (círculoActual < cantCírculos)
 				círculoActual++;
+			
+			//-----------se comprueba que se pueda mostrar el círculo seleccionado----------- 
+			if (!isTipoCírculoVisible(getCírculoActual().getTipoCírculo())){
+				if (getCírculoActual().isÚltimoCírculo()){ //se comprueba que no se haya llegdo al fin sin encontrar círculo
+					setCírculoActual(0);
+					if (isTipoCírculoVisible(getCírculoActual().getTipoCírculo())){ //si el primero es del tipo seleccionado
+						pasarAlSiguienteCírculo();
+						return;
+					}
+				}
+				pasarAlSiguienteCírculo();
+				return;
+			}
 		}
+		
+		private boolean isTipoCírculoVisible(TipoTecla t){
+			switch (t){
+			case LETRAS:
+				if (isMostrarCículosLetras() == false)
+					return false;
+				break;
+			case COMANDOS:
+				if (isMostrarCículosComandos() == false)
+					return false;
+				break;
+			case NÚMEROS:
+				if (isMostrarCículosNúmeros() == false)
+					return false;
+				break;
+			case LETRAS_ACENTUADAS:
+				if (isMostrarCículosLetrasAcentuadas() == false)
+					return false;
+				break;
+			case SÍMBOLOS:
+				if (isMostrarCículosSímbolos() == false)
+					return false;
+				break;
+			}
+			return true;
+		}
+		
 		
 		public void pasarAlCírculoAnterior(){
 			if (círculoActual > 0)
 				círculoActual--;
+			
+			//-----------se comprueba que se pueda mostrar el círculo seleccionado----------- 
+			if (!isTipoCírculoVisible(getCírculoActual().getTipoCírculo())){
+				if (getCírculoActual().isPrimerCírculo()){ //se comprueba que no se haya llegdo al inicio sin encontrar círculo
+					setCírculoActual(cantCírculos);
+					if (isTipoCírculoVisible(getCírculoActual().getTipoCírculo())){ //si el primero es del tipo seleccionado
+						pasarAlCírculoAnterior();
+						return;
+					}
+				}
+				pasarAlCírculoAnterior();
+				return;
+			}
 		}
 		
 		public void pasarAlCírculoEn(int lugar){ //TODO ver si círculoActual puede tener como límites 0 y cantCírculo o tiene q ser cantCírculos-1
@@ -918,6 +1031,32 @@ public class TecladoEyesFree extends View implements IGestureListener {
 			return miTeclado.get(círculoActual);
 		}
 		
+		public void mostrarSóloCírculosNúmeros(){
+			setMostrarCículosComandos(false);
+			setMostrarCículosLetras(false);
+			setMostrarCículosLetrasAcentuadas(false);
+			setMostrarCículosSímbolos(false);
+			setMostrarCículosNúmeros(true);
+			pasarAlCírculoDeNúmeros();
+		}
+		
+		public void mostrarLetrasNúmerosAcentos(){
+			setMostrarCículosComandos(false);
+			setMostrarCículosLetras(true);
+			setMostrarCículosLetrasAcentuadas(false);
+			setMostrarCículosSímbolos(false);
+			setMostrarCículosNúmeros(true);
+			pasarAlCírculoDeNúmeros();
+		}
+		
+		public void mostrarTodosLosTiposDeLetra(){
+			setMostrarCículosComandos(true);
+			setMostrarCículosLetras(true);
+			setMostrarCículosLetrasAcentuadas(true);
+			setMostrarCículosSímbolos(true);
+			setMostrarCículosNúmeros(true);
+			pasarAlCírculoDeLetras();
+		}
 	}
 }
 

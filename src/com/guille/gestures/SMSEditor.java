@@ -1,7 +1,7 @@
 package com.guille.gestures;  
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
@@ -14,6 +14,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.SmsManager;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -22,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.guille.gestures.Enums.Tecla;
+import com.guille.gestures.Enums.TipoTecla;
 import com.guille.gestures.UtilesCadena;
 
 
@@ -79,11 +81,11 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 		setContentView(R.layout.main);
 
 		txtTexto = (TextView) findViewById(R.id.txtTextoSMS);
-		txtTexto.setText("hola"); //TODO borrar los hola
+		txtTexto.setText(""); 
 		cadenaSMS = txtTexto.getText().toString();
 
 		txtNumero = (TextView) findViewById(R.id.txtNumero);
-		txtNumero.setText("hola");
+		txtNumero.setText("");
 		numeroSMS = txtNumero.getText().toString();
 		
 		l = (LinearLayout) findViewById(R.id.layoutFondo);
@@ -101,7 +103,8 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 		tecladoEyesFree.setId(pos);
 		pos++;
 		l.addView(tecladoEyesFree);
-		hablar("abriendo el teclado de círculos");
+		hablar("abriendo la aplicación de mensajes. En la pantalla hay dos círculos, uno interno en el que se elije qué tecla uno quiere, y otro externo " +
+		" en el que tenés atajos de teclado");
 	}
 	
 	private void cargarTecladoGestures() {
@@ -180,15 +183,15 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 		}
 	}
 	
-	private void escribirEnTextoSMS(String texto) {
-		if (texto.equalsIgnoreCase("espacio")) {
+	private void escribirEnTextoSMS(Tecla t) {
+		if (t == Tecla.ESPACIO){//texto.equalsIgnoreCase("espacio")) {
 			cadenaSMS += " ";
 			txtTexto.setText(cadenaSMS);
 			hablar("Espacio");// + ". Llevás escrito: " + cadenaSMS);
 		} else {
-			cadenaSMS += texto;
+			cadenaSMS += UtilesCadena.traducirTeclarParaEscribir(t);//texto;
 			txtTexto.setText(cadenaSMS);
-			hablar("Letra " + texto);// + ". Llevás escrito: " + cadenaSMS);
+			hablar(armarCadenaLeerTeclaEscrita(t));// + ". Llevás escrito: " + cadenaSMS);
 		}
 	}
 
@@ -199,6 +202,25 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 		} else { //si la letra no tiene contactos
 			hablar("No hay ningún contacto en la agenda que empiece con la letra " + texto + ". Imposible saltar");
 		}
+	}
+	
+	private String armarCadenaLeerTeclaEscrita(Tecla t){
+		String cadena=""; 
+		switch (UtilesCadena.reconocerTipoTecla(t)) {
+		case LETRAS:
+			cadena = "Letra " + UtilesCadena.traducirTeclaParaLeer(t);
+			break;
+		case SÍMBOLOS:
+			cadena = UtilesCadena.traducirTeclaParaLeer(t);
+			break;
+		case NÚMEROS:
+			cadena = "Número " + UtilesCadena.traducirTeclaParaLeer(t);
+			break;
+		default:
+			cadena  = "Letra " + UtilesCadena.traducirTeclaParaLeer(t);
+			break;
+		}
+		return cadena;
 	}
 
 	private void cargarContacto(int indiceContacto){
@@ -215,7 +237,7 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 			cadena += "Cargando el teléfono de " + cont.getNombre() + " con número " + numeroSMS + 
 					". Ahora estás de nuevo en el texto de tu mensaje";
 			if (cadenaSMS.length() > 0)
-				cadena += ". Llevás escrito " + cadenaSMS;
+				cadena += ". Llevás escrito " + UtilesCadena.traducirCadenaParaLeer(cadenaSMS);
 			else
 				cadena += "Todavía no escribiste aquí nada";
 
@@ -236,15 +258,19 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 	
 	private String armarCadenaPorCarácter (String carácter){
 		String cadena="";
+		String carácterTraducido = UtilesCadena.traducirTeclaParaLeer(UtilesCadena.traducirCarácterATecla(carácter));
 		carácter = carácter.toLowerCase();
+		
+		if (carácter == " ") return " el espacio";
+		
 		if (UtilesCadena.swEsSímbolo(carácter))
-			cadena = " el símbolo " + carácter;
+			cadena = " el símbolo " + carácterTraducido;
 		
 		if (UtilesCadena.swEsLetra(carácter))
-			cadena = " la letra " + carácter;
+			cadena = " la letra " + carácterTraducido;
 		
 		if (UtilesCadena.swEsNúmero(carácter))
-			cadena = " el número " + carácter;
+			cadena = " el número " + carácterTraducido;
 		
 		return cadena;
 	}
@@ -256,7 +282,13 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 			caracterABorrar = String.valueOf(cadenaSMS.charAt(cadenaSMS.length()-1));
 			cadenaSMS = cadenaSMS.subSequence(0, cadenaSMS.length()-1).toString();
 			txtTexto.setText(cadenaSMS);
-			hablar("Borrando " + armarCadenaPorCarácter(caracterABorrar) + ". Queda escrito " + cadenaSMS);
+			String cadena = "Borrando " + armarCadenaPorCarácter(caracterABorrar);
+			if (cadenaSMS.length() != 0)
+				cadena += ". Queda escrito " + UtilesCadena.traducirCadenaParaLeer(cadenaSMS);
+			else
+				cadena += ". Ya está todo borrado";
+				
+			hablar(cadena);
 		} else {
 			hablar("Ya está todo el texto del mensaje borrado");
 		}
@@ -281,7 +313,8 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 	}
 
 	private void enviarSMS() {
-		if (!UtilesCadena.swEsNúmero(numeroSMS)){
+		numeroSMS = numeroSMS.trim();
+		if (!UtilesCadena.swCadenaEsNúmero(numeroSMS)){
 			hablar("No se puede enviar el mensaje porque en el número del destinatario hay escrito algo que no es un número. Por favor correjí y volvé a enviar");
 			return;
 		}
@@ -379,6 +412,12 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 
 		SmsManager sms = SmsManager.getDefault();
 		sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);        
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) { //se evita que al pulsar back se salga de la aplicación
+		if (keyCode == KeyEvent.KEYCODE_BACK) return false;
+		return super.onKeyDown(keyCode, event);
 	}
 
 	private void ejecutarOpciónMenú (int opciónMenú){
@@ -582,22 +621,25 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 			analizarTeclaPulsadaEnOpciones(t);
 			break;
 		case ESCRITURA:
-			if (getDóndeEscribir() == EscribirEn.TEXTO_SMS)
+			if (getDóndeEscribir() == EscribirEn.TEXTO_SMS) {
 				analizarTeclaPulsadaEnEscrituraEnTextoSMS(t);
+				return;
+			}
 			
-			if (getDóndeEscribir() == EscribirEn.NÚMERO_SMS)
+			if (getDóndeEscribir() == EscribirEn.NÚMERO_SMS) {
 				analizarTeclaPulsadaEnEscrituraEnNúmeroSMS(t);
-			
+				return;
+			}
 			break;
 		}
 	}
 
 	private void analizarTeclaPulsadaEnEscrituraEnNúmeroSMS(Tecla t) {
 		if (swSePuedeEscribir(t)) {
-			escribirEnNúmeroSMS(t.name());
+			escribirEnNúmeroSMS(UtilesCadena.traducirTeclarParaEscribir(t));
 			return;
 		}
-				
+
 		if (t == Tecla.BORRAR){
 			borrarCaracterEnNúmero();
 			return;
@@ -612,9 +654,11 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 
 		if (t == Tecla.FLECHA_DER){
 			flagEstadoEscritura = EscribirEn.TEXTO_SMS;
+			TecladoEyesFree miTeclado = (TecladoEyesFree)this.findViewById(tecladoEyesFree.getId());
+			miTeclado.mostrarTodasLasTeclas();
 			String cadena = "Cambiando al texto del mensaje. "; 
 			if (cadenaSMS.length() > 0)
-				cadena += "Llevás escrito " + cadenaSMS;
+				cadena += "Llevás escrito " + UtilesCadena.traducirCadenaParaLeer(cadenaSMS);
 			else
 				cadena += "No hay escrito nada en el mensaje";
 
@@ -626,6 +670,8 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 			if (misContactos != null){ //si hay algún contacto en la lista
 				if (getFoco() != Foco.CONTACTOS) {
 					setFoco(Foco.CONTACTOS);
+					TecladoEyesFree miTeclado = (TecladoEyesFree)this.findViewById(tecladoEyesFree.getId());
+					miTeclado.mostrarLetrasNúmeros();
 					misContactos.seleccionarContactoEn(0);
 					hablar ("Abriendo los Contactos, para moverte por ellos deslizá a " +
 							"izquierda o derecha y aceptá con una pulsación corta. Estás " +
@@ -640,7 +686,7 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 
 	private void analizarTeclaPulsadaEnEscrituraEnTextoSMS(Tecla t) {
 		if (swSePuedeEscribir(t)){
-			escribirEnTextoSMS(t.name());
+			escribirEnTextoSMS(t);
 			return;
 		}
 		
@@ -652,6 +698,8 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 
 		if (t == Tecla.FLECHA_IZQ){
 			flagEstadoEscritura = EscribirEn.NÚMERO_SMS;
+			TecladoEyesFree miTeclado = (TecladoEyesFree)this.findViewById(tecladoEyesFree.getId());
+			miTeclado.mostrarSóloNúmeros();
 			String cadena = "Cambiando al número del destinatario. "; 
 			if (numeroSMS.length() > 0)
 				cadena += "Ya está escrito " + numeroSMS;
@@ -665,7 +713,7 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 		if (t == Tecla.FLECHA_DER){
 			hablar("Ya estás en el texto del mensaje, para cambiar al número del " +
 					"destinatario arrastrá el dedo hacia la izquierda. Hasta ahora el " +
-					"mensaje que llevás escrito es " + cadenaSMS);
+					"mensaje que llevás escrito es " + UtilesCadena.traducirCadenaParaLeer(cadenaSMS));
 			return;
 		}
 		
@@ -700,7 +748,7 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 			if (getDóndeEscribir() == EscribirEn.TEXTO_SMS){
 				cadena += "el texto de tu mensaje";
 				if (cadenaSMS.length() > 0)
-					cadena += ". Llevás escrito " + cadenaSMS;
+					cadena += ". Llevás escrito " + UtilesCadena.traducirCadenaParaLeer(cadenaSMS);
 				else
 					cadena += ". Todavía no escribiste nada";
 			}
@@ -710,7 +758,7 @@ public class SMSEditor extends Activity implements ITecladoListener //IGestureLi
 
 	private void analizarTeclaPulsadaEnContactos(Tecla t) {
 		if (swSePuedeEscribir(t)){
-			escribirEnContactos(t.name());
+			escribirEnContactos(UtilesCadena.traducirTeclarParaEscribir(t));
 			return;
 		}
 		

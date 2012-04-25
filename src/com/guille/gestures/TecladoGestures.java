@@ -16,16 +16,14 @@ import android.view.View;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.View.OnTouchListener;
 
-public class TecladoGestures extends View {//implements OnGesturePerformedListener, OnTouchListener{
+public class TecladoGestures extends View {//implements OnGesturePerformedListener, OnTouchListener, IGestureListener, ITeclado{
 //	private GestureDetector gestureDetector; 
 //	private GestureOverlayView gestureOverlayView;
 //	private GestureLibrary gestureLib;
 //	int cantDedosMaxima;
 //	private ITecladoListener cb = null;
 //
-//	private static final int SWIPE_MIN_DISTANCE = 120;  
-//	private static final int SWIPE_MAX_OFF_PATH = 250;  
-//	private static final int SWIPE_THRESHOLD_VELOCITY = 200; 
+ 
 //
 //
 //

@@ -50,12 +50,12 @@ public class SMSReceptor extends BroadcastReceiver
                 	str += "SMS del número " + msgs[i].getOriginatingAddress();
                 
                 str += ". El mensaje dice: ";
-                str += msgs[i].getMessageBody().toString();
+                str += msgs[i].getMessageBody().toString().toLowerCase();
                 str += "\n";        
             }
             //---display the new SMS message---
             Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
-            ((MiApp)context.getApplicationContext()).hablar(str.toLowerCase());
+            ((MiApp)context.getApplicationContext()).hablar(str);
         }                         
     }
     

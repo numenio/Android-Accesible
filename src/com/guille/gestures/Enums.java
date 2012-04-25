@@ -17,10 +17,10 @@ public class Enums {
 		SYM_ABRE_CORCHETES, SYM_CIERRA_CORCHETES, SYM_BARRA_DIAGONAL, SYM_BARRA_DIAGONAL_INVERTIDA, SYM_COMILLAS, SYM_NUMERAL, SYM_PESOS, SYM_PORCIENTO, 
 		SYM_PUNTO_ELEVADO, SYM_PUNTO, SYM_COMA, SYM_PUNTO_Y_COMA, SYM_GUION, SYM_GUION_BAJO, SYM_MAYOR, SYM_MENOR, SYM_ABRE_PARÉNTESIS, SYM_CIERRA_PARÉNTESIS,
 		SYM_IGUAL, SYM_BARRA_VERTICAL, SYM_ARROBA, SYM_AND, SYM_POTENCIA, SYM_NEGACIÓN, SYM_EURO, SYM_APÓSTROFO, SYM_AVOLADA, SYM_OVOLADA,
-		SYM_CE_CERILLAS
+		SYM_CE_CERILLAS, SYM_DOS_PUNTOS
 	}
 	
-	public enum TipoCírculo {
+	public enum TipoTecla {
 		LETRAS, NÚMEROS, SÍMBOLOS, COMANDOS, LETRAS_ACENTUADAS
 	}
 	
@@ -62,6 +62,7 @@ public class Enums {
 		TeclaComando.add(Tecla.FLECHA_DER);
 		TeclaComando.add(Tecla.FLECHA_ARR);
 		TeclaComando.add(Tecla.FLECHA_AB);
+		
 		TeclaComando.add(Tecla.OPCIONES); 
 		TeclaComando.add(Tecla.ENTER);
 		TeclaComando.add(Tecla.ESCAPE); 
@@ -73,24 +74,28 @@ public class Enums {
 		TeclaLetra.add(Tecla.D); 
 		TeclaLetra.add(Tecla.E); 
 		TeclaLetra.add(Tecla.F); 
+		
 		TeclaLetra.add(Tecla.G); 
 		TeclaLetra.add(Tecla.H); 
 		TeclaLetra.add(Tecla.I); 
 		TeclaLetra.add(Tecla.J); 
 		TeclaLetra.add(Tecla.K); 
 		TeclaLetra.add(Tecla.L); 
+		
 		TeclaLetra.add(Tecla.M); 
 		TeclaLetra.add(Tecla.N); 
 		TeclaLetra.add(Tecla.Ñ); 
 		TeclaLetra.add(Tecla.O); 
 		TeclaLetra.add(Tecla.P); 
 		TeclaLetra.add(Tecla.Q); 		
+		
 		TeclaLetra.add(Tecla.R); 
 		TeclaLetra.add(Tecla.S); 
 		TeclaLetra.add(Tecla.T); 
 		TeclaLetra.add(Tecla.U); 								
 		TeclaLetra.add(Tecla.V); 
 		TeclaLetra.add(Tecla.W); 
+		
 		TeclaLetra.add(Tecla.X); 
 		TeclaLetra.add(Tecla.Y); 
 		TeclaLetra.add(Tecla.Z);
@@ -108,46 +113,54 @@ public class Enums {
 		TeclaNúmero.add(Tecla.NUM_3); 
 		TeclaNúmero.add(Tecla.NUM_4); 
 		TeclaNúmero.add(Tecla.NUM_5); 
+		
 		TeclaNúmero.add(Tecla.NUM_6); 
 		TeclaNúmero.add(Tecla.NUM_7); 
 		TeclaNúmero.add(Tecla.NUM_8); 
 		TeclaNúmero.add(Tecla.NUM_9);
 		
-		TeclaSímbolo.add(Tecla.SYM_ASTERISCO); //TODO ordenar según frecuencia de uso
+		TeclaSímbolo.add(Tecla.SYM_DOS_PUNTOS);
+		TeclaSímbolo.add(Tecla.SYM_CIERRA_ADMIRACIÓN);
+		TeclaSímbolo.add(Tecla.SYM_CIERRA_PREGUNTA);
+		TeclaSímbolo.add(Tecla.SYM_PUNTO);
+		TeclaSímbolo.add(Tecla.SYM_COMA);
+		TeclaSímbolo.add(Tecla.SYM_ABRE_PARÉNTESIS);
+		
+		TeclaSímbolo.add(Tecla.SYM_ASTERISCO);
 		TeclaSímbolo.add(Tecla.SYM_DIÉRESIS);
 		TeclaSímbolo.add(Tecla.SYM_ABRE_ADMIRACIÓN);
-		TeclaSímbolo.add(Tecla.SYM_CIERRA_ADMIRACIÓN);
 		TeclaSímbolo.add(Tecla.SYM_ABRE_PREGUNTA);
-		TeclaSímbolo.add(Tecla.SYM_CIERRA_PREGUNTA);
 		TeclaSímbolo.add(Tecla.SYM_ABRE_LLAVE);
 		TeclaSímbolo.add(Tecla.SYM_CIERRA_LLAVE);
+		
 		TeclaSímbolo.add(Tecla.SYM_ABRE_CORCHETES);
 		TeclaSímbolo.add(Tecla.SYM_CIERRA_CORCHETES);
 		TeclaSímbolo.add(Tecla.SYM_BARRA_DIAGONAL);
 		TeclaSímbolo.add(Tecla.SYM_BARRA_DIAGONAL_INVERTIDA);
 		TeclaSímbolo.add(Tecla.SYM_COMILLAS);
+		TeclaSímbolo.add(Tecla.SYM_GUION_BAJO);
+		
 		TeclaSímbolo.add(Tecla.SYM_NUMERAL);
 		TeclaSímbolo.add(Tecla.SYM_PESOS);
 		TeclaSímbolo.add(Tecla.SYM_PORCIENTO); 
 		TeclaSímbolo.add(Tecla.SYM_PUNTO_ELEVADO);
-		TeclaSímbolo.add(Tecla.SYM_PUNTO);
-		TeclaSímbolo.add(Tecla.SYM_COMA);
 		TeclaSímbolo.add(Tecla.SYM_PUNTO_Y_COMA);
 		TeclaSímbolo.add(Tecla.SYM_GUION);
-		TeclaSímbolo.add(Tecla.SYM_GUION_BAJO);
+		
 		TeclaSímbolo.add(Tecla.SYM_MAYOR);
 		TeclaSímbolo.add(Tecla.SYM_MENOR);
-		TeclaSímbolo.add(Tecla.SYM_ABRE_PARÉNTESIS);
 		TeclaSímbolo.add(Tecla.SYM_CIERRA_PARÉNTESIS);
 		TeclaSímbolo.add(Tecla.SYM_IGUAL);
 		TeclaSímbolo.add(Tecla.SYM_BARRA_VERTICAL);
 		TeclaSímbolo.add(Tecla.SYM_ARROBA);
+		
 		TeclaSímbolo.add(Tecla.SYM_AND);
 		TeclaSímbolo.add(Tecla.SYM_POTENCIA);
 		TeclaSímbolo.add(Tecla.SYM_NEGACIÓN);
 		TeclaSímbolo.add(Tecla.SYM_EURO);
 		TeclaSímbolo.add(Tecla.SYM_APÓSTROFO);
 		TeclaSímbolo.add(Tecla.SYM_AVOLADA);
+		
 		TeclaSímbolo.add(Tecla.SYM_OVOLADA);
 		TeclaSímbolo.add(Tecla.SYM_CE_CERILLAS);
 	}	
